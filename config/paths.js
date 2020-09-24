@@ -1,3 +1,10 @@
+/*
+ * @Author: yangying01
+ * @Date: 2020-09-24 17:42:08
+ * @LastEditors: yangying01
+ * @LastEditTime: 2020-09-24 17:52:30
+ * @Description: 
+ */
 'use strict';
 
 const path = require('path');
@@ -48,14 +55,16 @@ const resolveModule = (resolveFn, filePath) => {
   return resolveFn(`${filePath}.js`);
 };
 
+const pageName = process.argv[2]
+
 // config after eject: we're in ./config/
 module.exports = {
   dotenv: resolveApp('.env'),
   appPath: resolveApp('.'),
-  appBuild: resolveApp('build'),
+  appBuild: pageName && pageName != 'main'? resolveApp(`dist/${pageName}`) : resolveApp(`dist`),
   appPublic: resolveApp('public'),
   appHtml: resolveApp('public/index.html'),
-  appIndexJs: resolveModule(resolveApp, 'src/index'),
+  appIndexJs: pageName? resolveModule(resolveApp, `src/pages/${pageName}/index`) : resolveModule(resolveApp, `src/index`),
   appPackageJson: resolveApp('package.json'),
   appSrc: resolveApp('src'),
   appTsConfig: resolveApp('tsconfig.json'),
