@@ -1,68 +1,127 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+<!--
+ * @Author: yangying01
+ * @Date: 2020-09-24 18:24:34
+ * @LastEditors: yangying01
+ * @LastEditTime: 2020-09-25 18:38:42
+ * @Description: 
+-->
+### react配置多页面
 
-## Available Scripts
+* entry修改
+```
+entry: {
+    home: "./src/pages/home/index.js",
+    about: "./src/pages/about/index.js",
+}
+```
 
-In the project directory, you can run:
+* output修改
 
-### `yarn start`
+output.filename: 修改
+```
+filename: isEnvProduction
+        ? 'static/js/[name].[contenthash:8].js'
+        : isEnvDevelopment && 'static/js/bundle.js',
+本地yarn start起服务多页面，所以 'static/js/bundle.js' 修改为 [name].bundle.js
 
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+```
 
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
+* webpack-manifest-plugin配置修改
 
-### `yarn test`
+```
+isEnvProduction &&
+    new ManifestPlugin({
+        fileName: 'asset-manifest.json',
+        publicPath: paths.publicUrlOrPath,
+        generate: (seed, files, entrypoints) => {
+          const manifestFiles = files.reduce((manifest, file) => {
+            manifest[file.name] = file.path;
+            return manifest;
+          }, seed);
+          console.log('>>> pageName = ' + pageName)
+          //默认是取entrypoints.main，但是多页面配置后我们的page名称是自定义的
+          //所以可以取自定义的page名，build的时候能取到page名，所以build的时候配置改插件
+          const entrypointFiles = entrypoints[pageName].filter(
+            fileName => !fileName.endsWith('.map')
+          );
 
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+          return {
+            files: manifestFiles,
+            entrypoints: entrypointFiles,
+          };
+        },
+      }),
+```
 
-### `yarn build`
 
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
+* html-webpack-plugin配置
+多个页面就要对应配置多个
 
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
+new HtmlWebpackPlugin({
+    inject: true,
+    chunks: ['home'],
+    template: paths.appHtml,
+    filename: 'home.html',
+})
+new HtmlWebpackPlugin({
+    inject: true,
+    chunks: ['about'],
+    template: paths.appHtml,
+    filename: 'about.html',
+})
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+* path 修改打包路径配置
 
-### `yarn eject`
+appBuild: pageName? resolveApp(`dist/${pageName}`) : resolveApp(`dist`),
+appIndexJs: pageName? resolveModule(resolveApp, `src/pages/${pageName}/index`) : resolveModule(resolveApp, `src/index`),
+  
+---
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+entry可以读取src下文件自动获取
+参考 config/getEntry.js
+```
+const glob = require('glob');
+const path = require('path');
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+function getEntry(isEnvDevelopment) {
+    let globPath = './src/pages/*/index.js'
+    let files = glob.sync(globPath)
+    let entries = {}
+    let dirname, name, url = ''
+    let dirArr = []
+    for (let i = 0; i < files.length; i++) {
+        dirname = path.dirname(files[i])
+        dirArr = dirname.split('/')
+        name = dirArr[dirArr.length - 1]
+        url = dirname + '/index.js'
+        entries[name] = [
+            // Include an alternative client for WebpackDevServer. A client's job is to
+            // connect to WebpackDevServer by a socket and get notified about changes.
+            // When you save a file, the client will either apply hot updates (in case
+            // of CSS changes), or refresh the page (in case of JS changes). When you
+            // make a syntax error, this client will display a syntax error overlay.
+            // Note: instead of the default WebpackDevServer client, we use a custom one
+            // to bring better experience for Create React App users. You can replace
+            // the line below with these two lines if you prefer the stock client:
+            // require.resolve('webpack-dev-server/client') + '?/',
+            // require.resolve('webpack/hot/dev-server'),
+            isEnvDevelopment &&
+              require.resolve('react-dev-utils/webpackHotDevClient'),
+            // Finally, this is your app's code:
+            url,
+            // We include the app code last so that if there is a runtime error during
+            // initialization, it doesn't blow up the WebpackDevServer client, and
+            // changing JS code would still trigger a refresh.
+          ].filter(Boolean)
+    }
+    return entries
+}
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+module.exports = getEntry
+```
 
-## Learn More
+---
+html-webpack-plugin配置根据entry自动生成
+参考config/getWebpackHtmlPages.js
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
-
-### Analyzing the Bundle Size
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
-
-### Making a Progressive Web App
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
-
-### Advanced Configuration
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
-
-### Deployment
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
-
-### `yarn build` fails to minify
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
