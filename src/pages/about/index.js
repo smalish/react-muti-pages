@@ -1,8 +1,8 @@
 /*
  * @Author: your name
  * @Date: 2020-09-11 15:45:30
- * @LastEditTime: 2020-09-14 15:14:38
- * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2020-09-25 16:43:52
+ * @LastEditors: yangying01
  * @Description: In User Settings Edit
  * @FilePath: /github/muti-pages-demo/src/pages/about/index.js
  */

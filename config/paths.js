@@ -2,7 +2,7 @@
  * @Author: yangying01
  * @Date: 2020-09-24 17:42:08
  * @LastEditors: yangying01
- * @LastEditTime: 2020-09-24 17:52:30
+ * @LastEditTime: 2020-09-25 16:34:01
  * @Description: 
  */
 'use strict';
@@ -61,7 +61,7 @@ const pageName = process.argv[2]
 module.exports = {
   dotenv: resolveApp('.env'),
   appPath: resolveApp('.'),
-  appBuild: pageName && pageName != 'main'? resolveApp(`dist/${pageName}`) : resolveApp(`dist`),
+  appBuild: pageName? resolveApp(`dist/${pageName}`) : resolveApp(`dist`),
   appPublic: resolveApp('public'),
   appHtml: resolveApp('public/index.html'),
   appIndexJs: pageName? resolveModule(resolveApp, `src/pages/${pageName}/index`) : resolveModule(resolveApp, `src/index`),

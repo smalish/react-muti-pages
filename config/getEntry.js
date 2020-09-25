@@ -2,7 +2,7 @@
  * @Author: yangying01
  * @Date: 2020-09-18 10:57:09
  * @LastEditors: yangying01
- * @LastEditTime: 2020-09-24 17:45:29
+ * @LastEditTime: 2020-09-25 16:51:15
  * @Description: 获取多页面入口地址
  * @version: 1.0.0
  */
@@ -10,7 +10,7 @@ const glob = require('glob');
 const path = require('path');
 
 function getEntry(isEnvDevelopment) {
-    let globPath = 'src/pages/*/index.js'
+    let globPath = './src/pages/*/index.js'
     let files = glob.sync(globPath)
     let entries = {}
     let dirname, name, url = ''
